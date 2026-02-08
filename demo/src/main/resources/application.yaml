@@ -4,8 +4,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/Transaction
-    username: postgres
-    password: redhat@2004
+    username: user_name
+    password: password
 
   jpa:
     hibernate:
@@ -20,6 +20,6 @@ server:
 
 telegram:
   bot:
-    token: 8198594331:AAFXnY5Ov_kFvj7hJEh366YELgQ8q7HXR6Q
+    token: {$TelegramToken}
   chat:
-    id: "5745827016"
+    id: "{ChatID}"
