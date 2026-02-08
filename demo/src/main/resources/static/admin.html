@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body{
+        margin:0;
+        font-family:Arial,Helvetica,sans-serif;
+        background:#0b0f14;
+        color:white;
+    }
+    .container{
+        padding:20px 40px;
+    }
+    h1{
+        text-align:center;
+        margin-bottom:10px;
+    }
+
+    /* REALTIME STATUS BAR */
+    .status-bar{
+        text-align:center;
+        margin-bottom:20px;
+        padding:10px;
+        background:#1a2030;
+        border-radius:8px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        gap:15px;
+    }
+    .live-indicator{
+        width:12px;
+        height:12px;
+        background:#ff3333;
+        border-radius:50%;
+        animation:pulse 1.5s infinite;
+    }
+    @keyframes pulse{
+        0%, 100%{opacity:1; transform:scale(1)}
+        50%{opacity:0.5; transform:scale(1.1)}
+    }
+    .last-update{
+        color:#888;
+        font-size:13px;
+    }
+    .sync-status{
+        color:#4ade80;
+        font-size:13px;
+    }
+
+    /* KPI CARDS WITH REALTIME ANIMATION */
+    .cards{
+        display:flex;
+        gap:20px;
+    }
+    .card{
+        flex:1;
+        background:#151a21;
+        padding:20px;
+        border-radius:12px;
+        position:relative;
+        overflow:hidden;
+        transition:all 0.3s ease;
+    }
+    .card:hover{
+        transform:translateY(-3px);
+        box-shadow:0 5px 20px rgba(43,124,255,0.3);
+    }
+    .card.updated{
+        animation:cardFlash 0.5s;
+    }
+    @keyframes cardFlash{
+        0%{background:#151a21}
+        50%{background:#1f2a35}
+        100%{background:#151a21}
+    }
+    .card h3{margin:0;color:#aaa;font-size:14px}
+    .card h2{margin:10px 0;font-size:32px}
+    .card .trend{
+        position:absolute;
+        bottom:10px;
+        right:15px;
+        font-size:12px;
+        color:#4ade80;
+    }
+    .card .trend.down{color:#f87171}
+
+    /* CHART GRID WITH LOADING INDICATORS */
+    .charts{
+        margin-top:25px;
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:20px;
+    }
+    .chart-box{
+        background:#151a21;
+        padding:20px;
+        border-radius:12px;
+        position:relative;
+    }
+    .chart-box.loading::after{
+        content:"";
+        position:absolute;
+        top:0;
+        left:0;
+        right:0;
+        height:3px;
+        background:linear-gradient(90deg, transparent, #2b7cff, transparent);
+        animation:loading 1.5s infinite;
+    }
+    @keyframes loading{
+        0%{transform:translateX(-100%)}
+        100%{transform:translateX(100%)}
+    }
+    .chart-title{
+        font-size:14px;
+        color:#888;
+        margin-bottom:10px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    }
+    .chart-update{
+        font-size:11px;
+        color:#4ade80;
+    }
+
+    /* TABLE WITH ROW HIGHLIGHTING */
+    .table-section{
+        margin-top:25px;
+        background:#151a21;
+        padding:20px;
+        border-radius:12px;
+    }
+    table{
+        width:100%;
+        border-collapse:collapse;
+    }
+    th,td{
+        padding:10px;
+        border-bottom:1px solid #222;
+    }
+    tbody tr{
+        transition:background 0.2s;
+    }
+    tbody tr:hover{
+        background:#1f2a35;
+    }
+    tbody tr.new-row{
+        animation:highlightRow 2s;
+    }
+    @keyframes highlightRow{
+        0%{background:#2b7cff33}
+        100%{background:transparent}
+    }
+    .priority-high{color:#f87171;font-weight:bold}
+    .priority-medium{color:#fbbf24}
+    .priority-low{color:#4ade80}
+    .status-badge{
+        padding:4px 8px;
+        border-radius:4px;
+        font-size:11px;
+        font-weight:bold;
+    }
+    .status-open{background:#dc262633;color:#f87171}
+    .status-progress{background:#f59e0b33;color:#fbbf24}
+    .status-closed{background:#10b98133;color:#4ade80}
+    button{
+        background:#2b7cff;
+        border:none;
+        padding:6px 10px;
+        color:white;
+        border-radius:6px;
+        cursor:pointer;
+        transition:background 0.2s;
+    }
+    button:hover{
+        background:#1e5fd4;
+    }
+    button:active{
+        transform:scale(0.95);
+    }
+
+    /* SOLUTION PANEL */
+    .solution{
+        margin-top:25px;
+        background:#151a21;
+        padding:20px;
+        border-radius:12px;
+    }
+    textarea{
+        width:100%;
+        height:80px;
+        background:#0e1319;
+        color:white;
+        border:1px solid #333;
+        padding:10px;
+        border-radius:6px;
+        font-family:inherit;
+        resize:vertical;
+    }
+    textarea:focus{
+        outline:none;
+        border-color:#2b7cff;
+    }
+
+    /* ACTIVITY MONITOR */
+    .activity-monitor{
+        margin-top:25px;
+        background:#151a21;
+        padding:20px;
+        border-radius:12px;
+        max-height:200px;
+        overflow-y:auto;
+    }
+    .activity-log{
+        font-size:12px;
+        color:#888;
+    }
+    .activity-item{
+        padding:8px;
+        margin:5px 0;
+        background:#0e1319;
+        border-radius:4px;
+        border-left:3px solid #2b7cff;
+        animation:slideIn 0.3s;
+    }
+    @keyframes slideIn{
+        from{opacity:0;transform:translateX(-20px)}
+        to{opacity:1;transform:translateX(0)}
+    }
+    .activity-time{
+        color:#4ade80;
+        font-weight:bold;
+    }
+
+    /* PERFORMANCE METRICS */
+    .metrics-bar{
+        margin-top:25px;
+        display:grid;
+        grid-template-columns:repeat(4, 1fr);
+        gap:15px;
+    }
+    .metric{
+        background:#151a21;
+        padding:15px;
+        border-radius:8px;
+        text-align:center;
+    }
+    .metric-label{
+        font-size:11px;
+        color:#888;
+        margin-bottom:5px;
+    }
+    .metric-value{
+        font-size:20px;
+        font-weight:bold;
+        color:#2b7cff;
+    }
+    .metric-bar{
+        width:100%;
+        height:4px;
+        background:#0e1319;
+        border-radius:2px;
+        margin-top:8px;
+        overflow:hidden;
+    }
+    .metric-fill{
+        height:100%;
+        background:linear-gradient(90deg, #2b7cff, #4ade80);
+        transition:width 0.5s ease;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <h1>⚡ Realtime Admin Monitoring Dashboard</h1>
+
+  <!-- REALTIME STATUS -->
+  <div class="status-bar">
+    <div class="live-indicator"></div>
+    <span class="sync-status">● LIVE</span>
+    <span class="last-update">Last updated: <span id="lastUpdate">Never</span></span>
+    <span class="last-update">Next refresh: <span id="nextRefresh">10s</span></span>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="cards">
+    <div class="card" id="cardOpen">
+      <h3>Open</h3>
+      <h2 id="openCount">0</h2>
+      <span class="trend" id="trendOpen"></span>
+    </div>
+    <div class="card" id="cardProgress">
+      <h3>In Progress</h3>
+      <h2 id="progressCount">0</h2>
+      <span class="trend" id="trendProgress"></span>
+    </div>
+    <div class="card" id="cardClosed">
+      <h3>Closed</h3>
+      <h2 id="closedCount">0</h2>
+      <span class="trend" id="trendClosed"></span>
+    </div>
+    <div class="card" id="cardTotal">
+      <h3>Total</h3>
+      <h2 id="totalCount">0</h2>
+      <span class="trend" id="trendTotal"></span>
+    </div>
+  </div>
+
+  <!-- PERFORMANCE METRICS -->
+  <div class="metrics-bar">
+    <div class="metric">
+      <div class="metric-label">Response Rate</div>
+      <div class="metric-value" id="responseRate">0%</div>
+      <div class="metric-bar"><div class="metric-fill" id="responseBar"></div></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Resolution Time</div>
+      <div class="metric-value" id="resolutionTime">0h</div>
+      <div class="metric-bar"><div class="metric-fill" id="resolutionBar"></div></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Active Agents</div>
+      <div class="metric-value" id="activeAgents">0</div>
+      <div class="metric-bar"><div class="metric-fill" id="agentsBar"></div></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">System Load</div>
+      <div class="metric-value" id="systemLoad">0%</div>
+      <div class="metric-bar"><div class="metric-fill" id="loadBar"></div></div>
+    </div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts">
+    <div class="chart-box" id="statusChartBox">
+      <div class="chart-title">
+        Status Distribution
+        <span class="chart-update" id="statusChartUpdate"></span>
+      </div>
+      <canvas id="statusChart"></canvas>
+    </div>
+    <div class="chart-box" id="categoryChartBox">
+      <div class="chart-title">
+        Category Breakdown
+        <span class="chart-update" id="categoryChartUpdate"></span>
+      </div>
+      <canvas id="categoryChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ACTIVITY MONITOR -->
+  <div class="activity-monitor">
+    <h3>📡 Activity Log</h3>
+    <div class="activity-log" id="activityLog">
+      <div class="activity-item">
+        <span class="activity-time">System Ready</span> - Dashboard initialized
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-section">
+    <h3>🎫 All Tickets <span style="font-size:12px;color:#888;font-weight:normal" id="ticketCount"></span></h3>
+    <table id="ticketTable">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Agent</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- SOLUTION PANEL -->
+  <div class="solution">
+    <h3>💡 Ticket Solution</h3>
+    <input type="hidden" id="selectedTicket">
+    <textarea id="solutionText" placeholder="Write solution..."></textarea>
+    <br><br>
+    <button onclick="submitSolution()">Submit Solution</button>
+  </div>
+
+</div>
+
+<script>
+  let statusChart;
+  let categoryChart;
+  let previousStats = {open:0, progress:0, closed:0, total:0};
+  let activityLog = [];
+  let countdownTimer;
+  let nextRefreshSeconds = 10;
+
+  /* 🔐 ADMIN SESSION CHECK */
+  async function checkAdmin(){
+     let res = await fetch("/admin/dashboard");
+     if(res.status===403){
+        window.location="/login.html";
+        return null;
+     }
+     return res.json();
+  }
+
+  /* ⏱️ COUNTDOWN TIMER */
+  function startCountdown(){
+     clearInterval(countdownTimer);
+     nextRefreshSeconds = 10;
+
+     countdownTimer = setInterval(()=>{
+        nextRefreshSeconds--;
+        document.getElementById("nextRefresh").innerText = nextRefreshSeconds + "s";
+
+        if(nextRefreshSeconds <= 0){
+           clearInterval(countdownTimer);
+        }
+     }, 1000);
+  }
+
+  /* 📊 LOAD DASHBOARD */
+  async function loadDashboard(){
+
+     // Add loading animation
+     document.getElementById("statusChartBox").classList.add("loading");
+     document.getElementById("categoryChartBox").classList.add("loading");
+
+     const data = await checkAdmin();
+     if(!data) return;
+
+     // Update timestamp
+     const now = new Date();
+     document.getElementById("lastUpdate").innerText = now.toLocaleTimeString();
+
+     // Restart countdown
+     startCountdown();
+
+     // Remove loading animation
+     setTimeout(()=>{
+        document.getElementById("statusChartBox").classList.remove("loading");
+        document.getElementById("categoryChartBox").classList.remove("loading");
+     }, 500);
+
+     /* KPI UPDATE WITH TRENDS */
+     updateKPI("openCount", "cardOpen", "trendOpen", data.stats.open, previousStats.open);
+     updateKPI("progressCount", "cardProgress", "trendProgress", data.stats.progress, previousStats.progress);
+     updateKPI("closedCount", "cardClosed", "trendClosed", data.stats.closed, previousStats.closed);
+     updateKPI("totalCount", "cardTotal", "trendTotal", data.stats.total, previousStats.total);
+
+     // Update previous stats
+     previousStats = {...data.stats};
+
+     // Update performance metrics
+     updateMetrics(data.stats);
+
+     buildStatusChart(data.stats);
+     buildCategoryChart(data.categoryChart);
+     buildTable(data.tickets);
+
+     // Update chart timestamps
+     document.getElementById("statusChartUpdate").innerText = "Updated now";
+     document.getElementById("categoryChartUpdate").innerText = "Updated now";
+  }
+
+  /* 📈 UPDATE KPI WITH ANIMATION */
+  function updateKPI(countId, cardId, trendId, newValue, oldValue){
+     const countEl = document.getElementById(countId);
+     const cardEl = document.getElementById(cardId);
+     const trendEl = document.getElementById(trendId);
+
+     // Animate if value changed
+     if(newValue !== oldValue){
+        cardEl.classList.add("updated");
+        setTimeout(()=>cardEl.classList.remove("updated"), 500);
+
+        // Show trend
+        const diff = newValue - oldValue;
+        if(diff > 0){
+           trendEl.innerText = "▲ +" + diff;
+           trendEl.className = "trend";
+           logActivity(`${countId.replace('Count','')} increased by ${diff}`);
+        } else if(diff < 0){
+           trendEl.innerText = "▼ " + diff;
+           trendEl.className = "trend down";
+           logActivity(`${countId.replace('Count','')} decreased by ${Math.abs(diff)}`);
+        }
+     }
+
+     countEl.innerText = newValue;
+  }
+
+  /* 📊 UPDATE PERFORMANCE METRICS */
+  function updateMetrics(stats){
+     const total = stats.total || 1;
+     const closed = stats.closed || 0;
+
+     // Response rate (closed/total)
+     const responseRate = Math.round((closed / total) * 100);
+     document.getElementById("responseRate").innerText = responseRate + "%";
+     document.getElementById("responseBar").style.width = responseRate + "%";
+
+     // Resolution time (simulated)
+     const avgTime = Math.round(24 - (responseRate / 10));
+     document.getElementById("resolutionTime").innerText = avgTime + "h";
+     document.getElementById("resolutionBar").style.width = Math.min((24-avgTime)*10, 100) + "%";
+
+     // Active agents (simulated based on in-progress tickets)
+     const agents = Math.min(stats.progress + 2, 8);
+     document.getElementById("activeAgents").innerText = agents;
+     document.getElementById("agentsBar").style.width = (agents / 8) * 100 + "%";
+
+     // System load (simulated)
+     const load = Math.min(Math.round((stats.open / total) * 100), 100);
+     document.getElementById("systemLoad").innerText = load + "%";
+     document.getElementById("loadBar").style.width = load + "%";
+  }
+
+  /* 📝 ACTIVITY LOG */
+  function logActivity(message){
+     const now = new Date();
+     const time = now.toLocaleTimeString();
+
+     activityLog.unshift({time, message});
+     if(activityLog.length > 10) activityLog.pop();
+
+     const logEl = document.getElementById("activityLog");
+     logEl.innerHTML = activityLog.map(item=>
+        `<div class="activity-item">
+           <span class="activity-time">${item.time}</span> - ${item.message}
+         </div>`
+     ).join("");
+  }
+
+  /* 📈 STATUS PIE */
+  function buildStatusChart(stats){
+
+     const ctx = document.getElementById("statusChart");
+
+     if(statusChart) statusChart.destroy();
+
+     statusChart = new Chart(ctx,{
+        type:"doughnut",
+        data:{
+          labels:["Open","In Progress","Closed"],
+          datasets:[{
+            data:[stats.open,stats.progress,stats.closed],
+            backgroundColor:["#f87171","#fbbf24","#4ade80"],
+            borderWidth:0
+          }]
+        },
+        options:{
+           responsive:true,
+           maintainAspectRatio:true,
+           plugins:{
+              legend:{
+                 labels:{color:"#888"}
+              }
+           }
+        }
+     });
+  }
+
+  /* 📊 CATEGORY BAR */
+  function buildCategoryChart(list){
+
+     const labels = list.map(x=>x[0]);
+     const values = list.map(x=>x[1]);
+
+     const ctx = document.getElementById("categoryChart");
+
+     if(categoryChart) categoryChart.destroy();
+
+     categoryChart = new Chart(ctx,{
+       type:"bar",
+       data:{
+         labels:labels,
+         datasets:[{
+            data:values,
+            backgroundColor:"#2b7cff",
+            borderWidth:0
+         }]
+       },
+       options:{
+          responsive:true,
+          maintainAspectRatio:true,
+          plugins:{
+             legend:{display:false}
+          },
+          scales:{
+             x:{ticks:{color:"#888"}},
+             y:{ticks:{color:"#888"}, grid:{color:"#222"}}
+          }
+       }
+     });
+  }
+
+  /* 📋 TABLE */
+  function buildTable(tickets){
+
+     const tbody = document.querySelector("#ticketTable tbody");
+     const existingIds = Array.from(tbody.querySelectorAll("tr")).map(tr=>tr.dataset.id);
+
+     tbody.innerHTML="";
+
+     document.getElementById("ticketCount").innerText = `(${tickets.length} tickets)`;
+
+     tickets.forEach(t=>{
+        const tr = document.createElement("tr");
+        tr.dataset.id = t[0];
+
+        // Highlight new rows
+        if(!existingIds.includes(String(t[0]))){
+           tr.classList.add("new-row");
+        }
+
+        // Priority styling
+        let priorityClass = "";
+        if(t[2].toLowerCase().includes("high")) priorityClass = "priority-high";
+        else if(t[2].toLowerCase().includes("medium")) priorityClass = "priority-medium";
+        else if(t[2].toLowerCase().includes("low")) priorityClass = "priority-low";
+
+        // Status badge
+        let statusClass = "";
+        let statusText = t[3];
+        if(statusText.toLowerCase().includes("open")) statusClass = "status-open";
+        else if(statusText.toLowerCase().includes("progress")) statusClass = "status-progress";
+        else if(statusText.toLowerCase().includes("closed")) statusClass = "status-closed";
+
+        tr.innerHTML=`
+        <td>${t[0]}</td>
+        <td>${t[1]}</td>
+        <td class="${priorityClass}">${t[2]}</td>
+        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+        <td>${t[4] || "-"}</td>
+        <td>
+           <button onclick="resolveTicket(${t[0]})">Resolve</button>
+           <button onclick="selectTicket(${t[0]})">Solution</button>
+        </td>
+        `;
+
+        tbody.appendChild(tr);
+     });
+  }
+
+  /* ✅ RESOLVE */
+  function resolveTicket(id){
+     fetch(`/admin/ticket/${id}/status?statusId=3`,{
+       method:"PUT"
+     }).then(()=>{
+        logActivity(`Ticket #${id} resolved`);
+        loadDashboard();
+     });
+  }
+
+  /* 🧾 SELECT FOR SOLUTION */
+  function selectTicket(id){
+     document.getElementById("selectedTicket").value=id;
+     document.getElementById("solutionText").focus();
+     logActivity(`Selected ticket #${id} for solution`);
+  }
+
+  /* 🧠 SUBMIT SOLUTION */
+  function submitSolution(){
+
+     const id = document.getElementById("selectedTicket").value;
+     const text = document.getElementById("solutionText").value;
+
+     if(!id || text.trim().length===0){
+        alert("Select ticket and enter solution");
+        return;
+     }
+
+     fetch(`/admin/ticket/${id}/solution`,{
+        method:"POST",
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({remarks:text})
+     }).then(()=>{
+        document.getElementById("solutionText").value="";
+        logActivity(`Solution submitted for ticket #${id}`);
+        loadDashboard();
+     });
+  }
+
+  /* 🔄 AUTO REFRESH EVERY 10s */
+  setInterval(loadDashboard,10000);
+  loadDashboard();
+
+</script>
+</body>
+</html>

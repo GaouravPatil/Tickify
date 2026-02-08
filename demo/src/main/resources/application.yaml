@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: demo
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Transaction
+    username: postgres
+    password: redhat@2004
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8087
+
+telegram:
+  bot:
+    token: 8198594331:AAFXnY5Ov_kFvj7hJEh366YELgQ8q7HXR6Q
+  chat:
+    id: "5745827016"
