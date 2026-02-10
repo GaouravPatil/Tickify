@@ -21,5 +21,6 @@ public class AIAgentScheduler {
         System.out.println("AI AGENT → scanning tickets...");
 
         agentService.autoResolveTickets();
+        
     }
 }

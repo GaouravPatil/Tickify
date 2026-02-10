@@ -15,17 +15,27 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public void createUser(String username, String email, String password) throws Exception {
+    public void createUser(String username,
+                           String email,
+                           String password,
+                           String role) throws Exception {
+
+        if(userRepository.existsByUsernameOrEmail(username, email)){
+            throw new RuntimeException("User already exists");
+        }
 
         String hashedPassword = hashPassword(password);
 
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user.setPassword(hashedPassword);
+        user.setPassword(hashedPassword);   // ⚠️ use passwordHash column
+        user.setRole(role);                     // ADMIN / AGENT / USER
+        user.isActive(true);
 
         userRepository.save(user);
     }
+
 
     private String hashPassword(String password) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");

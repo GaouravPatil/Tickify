@@ -1,6 +1,7 @@
 package com.ticket_tracking_service.controller;
 
 import com.ticket_tracking_service.service.TicketService;
+import com.ticket_tracking_service.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +14,15 @@ import java.util.Map;
 @RequestMapping("/admin")
 public class AdminController {
 
+    private final UserService userService;
     private final TicketService ticketService;
 
-    public AdminController(TicketService ticketService) {
+    public AdminController(TicketService ticketService,
+                           UserService userService){
         this.ticketService = ticketService;
+        this.userService = userService;
     }
+
 
     @PutMapping("/ticket/{id}/status")
     public ResponseEntity<?> updateStatus(@PathVariable long id,
@@ -84,4 +89,30 @@ public class AdminController {
 
         return ResponseEntity.ok("Solution Added");
     }
+
+    @PostMapping("/user")
+    public ResponseEntity<?> createUser(@RequestBody Map<String,String> body,
+                                        HttpServletRequest request) throws Exception {
+
+        HttpSession session = request.getSession(false);
+
+        if(session == null || !"ADMIN".equals(session.getAttribute("role"))){
+            return ResponseEntity.status(403).body("Access denied");
+        }
+
+        String username = body.get("username");
+        String email = body.get("email");
+        String password = body.get("password");
+        String role = body.get("role");
+
+        if(username == null || email == null || password == null || role == null){
+            return ResponseEntity.badRequest().body("All fields are required");
+        }
+
+        userService.createUser(username, email, password, role);
+
+        return ResponseEntity.ok("User Created Successfully");
+    }
+
+
 }

@@ -39,7 +39,7 @@ public class User {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public boolean isActive() { return isActive; }
+    public boolean isActive(boolean b) { return isActive; }
     public void setActive(boolean active) { isActive = active; }
 }
 

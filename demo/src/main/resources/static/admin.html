@@ -291,6 +291,16 @@
     <span class="last-update">Next refresh: <span id="nextRefresh">10s</span></span>
   </div>
 
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>Admin Dashboard</h2>
+
+    <button onclick="openUserModal()"
+            style="background:#4CAF50;color:white;padding:8px 14px;border:none;border-radius:6px;">
+      + Add User
+    </button>
+  </div>
+
+
   <!-- KPI CARDS -->
   <div class="cards">
     <div class="card" id="cardOpen">
@@ -394,9 +404,63 @@
     <button onclick="submitSolution()">Submit Solution</button>
   </div>
 
+  <div id="userModal" style="display:none;position:fixed;top:20%;left:35%;background:#fff;padding:20px;border-radius:10px;box-shadow:0 0 10px #000;">
+
+    <h3>Create User</h3>
+
+    <input id="username" placeholder="Username"><br><br>
+    <input id="email" placeholder="Email"><br><br>
+    <input id="password" type="password" placeholder="Password"><br><br>
+
+    <select id="role">
+      <option value="USER">USER</option>
+      <option value="AGENT">AGENT</option>
+      <option value="ADMIN">ADMIN</option>
+    </select><br><br>
+
+    <button onclick="createUser()">Create</button>
+    <button onclick="closeUserModal()">Cancel</button>
+
+  </div>
+
+
 </div>
 
 <script>
+  function openUserModal(){
+    document.getElementById("userModal").style.display="block";
+}
+
+function closeUserModal(){
+    document.getElementById("userModal").style.display="none";
+}
+
+async function createUser(){
+
+    const data = {
+        username: document.getElementById("username").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        role: document.getElementById("role").value
+    };
+
+    const res = await fetch("/admin/user",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    if(res.ok){
+        alert("User created");
+        closeUserModal();
+    }else{
+        alert("Failed");
+    }
+}
+
+
   let statusChart;
   let categoryChart;
   let previousStats = {open:0, progress:0, closed:0, total:0};
