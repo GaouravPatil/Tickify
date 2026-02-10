@@ -9,6 +9,8 @@ import com.ticket_tracking_service.Repository.TicketHistoryRepository;
 import com.ticket_tracking_service.model.Ticket;
 import com.ticket_tracking_service.model.TicketStatusHistory;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,7 +97,7 @@ public class TicketService {
     }
 
     /* ================= ADMIN DASHBOARD ================= */
-
+    @Cacheable("adminStats")
     public Map<String, Long> getAdminStats() {
     
         Object[] r = (Object[]) ticketRepository.getAdminTicketStats();
@@ -115,7 +117,7 @@ public class TicketService {
     }
 
 
-
+    @Cacheable("admin-dashboard")
     public List<Object[]> getAdminTickets(){
         return ticketRepository.fetchAllTicketsForAdmin();
     }
@@ -125,7 +127,7 @@ public class TicketService {
     }
 
     /* ================= ADMIN ACTIONS ================= */
-
+    @CacheEvict(value={"userStats","adminStats","adminTickets"}, allEntries=true)
     @Transactional
     public void updateTicketStatus(long ticketId,
                                    long statusId,
@@ -142,7 +144,7 @@ public class TicketService {
         historyRepository.save(history);
     }
 
-    /* 🧾 ADD SOLUTION FROM ADMIN PANEL */
+
     @Transactional
     public void addSolution(long ticketId,
                             String remarks,
@@ -156,7 +158,7 @@ public class TicketService {
         historyRepository.save(history);
     }
 
-
+    @CacheEvict(value={"userStats","adminStats","adminTickets"}, allEntries=true)
     @Transactional
     public void resolveByAI(long ticketId) {
 
@@ -175,6 +177,67 @@ public class TicketService {
                 "🤖 AI resolved ticket #" + ticketId
         );
     }
+    @CacheEvict(value={"userStats","user-dashboard"}, key="#userId")
+    @Transactional
+    public void resolveByUser(long ticketId, long userId) {
+
+        Long closedStatusId = ticketRepository.findClosedStatusId();
+
+        ticketRepository.updateTicketStatus(ticketId, closedStatusId);
+
+        TicketStatusHistory history = new TicketStatusHistory();
+        history.setTicketId(ticketId);
+        history.setStatusId(closedStatusId);
+        history.setUpdatedBy(userId);
+        history.setRemarks("Resolved by user");
+
+        historyRepository.save(history);
+    }
+    // User dashboard showing
+    //Redis Cache Annotation
+    @Cacheable(value = "userStats", key = "#userId")
+    public Map<String, Long> getUserStats(long userId){
+
+        Object[] r = (Object[]) ticketRepository.getUserStats(userId);
+
+        Map<String, Long> map = new HashMap<>();
+
+        long open = ((Number) r[0]).longValue();
+        long closed = ((Number) r[1]).longValue();
+
+        map.put("open", open);
+        map.put("closed", closed);
+        map.put("total", open + closed);
+
+        return map;
+    }
+
+
+    @Cacheable(value = "user-dashboard", key = "#userId")
+    @Transactional
+    public void userResolveTicket(long ticketId,long userId){
+
+        Long closedStatusId = ticketRepository.findClosedStatusId();
+
+        ticketRepository.updateTicketStatus(ticketId,closedStatusId);
+
+        TicketStatusHistory history = new TicketStatusHistory();
+        history.setTicketId(ticketId);
+        history.setStatusId(closedStatusId);
+        history.setUpdatedBy(userId);
+        history.setRemarks("Resolved by user");
+
+        historyRepository.save(history);
+
+        ticketRepository.deleteById(ticketId);
+    }
+
+
+
+
+
+
+
 
 }
 

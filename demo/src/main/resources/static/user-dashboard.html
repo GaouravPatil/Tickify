@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Dashboard</title>
+
+    <style>
+        body{
+            margin:0;
+            font-family:Arial,Helvetica,sans-serif;
+            background:linear-gradient(135deg,#0b0f14,#1a2332);
+            color:white;
+        }
+
+        /* HEADER */
+        .header{
+            display:flex;
+            justify-content:space-between;
+            padding:20px 40px;
+            background:#111827;
+            align-items:center;
+        }
+
+        .header-left{
+            display:flex;
+            flex-direction:column;
+            gap:5px;
+        }
+
+        .header h2{
+            margin:0;
+        }
+
+        .username{
+            color:#10b981;
+            font-size:14px;
+            font-weight:normal;
+        }
+
+        .logout{
+            background:#ef4444;
+            border:none;
+            padding:10px 16px;
+            border-radius:6px;
+            cursor:pointer;
+            color:white;
+        }
+
+        /* STATS */
+        .stats{
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:20px;
+            padding:30px 40px;
+        }
+
+        .card{
+            background:rgba(21,26,33,0.9);
+            padding:20px;
+            border-radius:12px;
+            text-align:center;
+            border:1px solid rgba(43,124,255,0.2);
+        }
+
+        .card h3{
+            margin:0;
+            color:#aaa;
+        }
+
+        .card h1{
+            margin-top:10px;
+        }
+
+        /* TABLE */
+        .container{
+            padding:20px 40px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th,td{
+            padding:14px;
+            border-bottom:1px solid #333;
+            text-align:left;
+        }
+
+        tr:hover{
+            background:#0e1319;
+        }
+
+        .resolve-btn{
+            background:linear-gradient(135deg,#10b981,#059669);
+            border:none;
+            padding:8px 12px;
+            border-radius:6px;
+            color:white;
+            cursor:pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-left">
+        <h2>User Dashboard</h2>
+        <span class="username" id="username">Loading...</span>
+    </div>
+    <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+
+
+<div class="dashboard-header">
+    <h2>User Dashboard</h2>
+    <button id="createTicketBtn"
+            class="create-ticket-btn"
+            onclick="window.location.href='/create-ticket.html'">
+        + Create Ticket
+    </button>
+
+</div>
+
+
+<!-- STATS -->
+<div class="stats">
+    <div class="card">
+        <h3>Open</h3>
+        <h1 id="openCount">0</h1>
+    </div>
+    <div class="card">
+        <h3>In Progress</h3>
+        <h1 id="progressCount">0</h1>
+    </div>
+    <div class="card">
+        <h3>Closed</h3>
+        <h1 id="closedCount">0</h1>
+    </div>
+    <div class="card">
+        <h3>Total</h3>
+        <h1 id="totalCount">0</h1>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="container">
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+
+        <tbody id="ticketTable"></tbody>
+    </table>
+</div>
+
+<script>
+    document.getElementById("createTicketBtn").addEventListener("click", function () {
+        window.location.href = "/create-ticket.html";
+    });
+</script>
+</body>
+</html>
+
+
+<script>
+
+
+    async function loadDashboard(){
+
+        const res = await fetch("/users/dashboard");
+
+        if(res.status === 403){
+            window.location.href="/login.html";
+            return;
+        }
+
+        const data = await res.json();
+
+        // Update username if available
+        if(data.username){
+            document.getElementById("username").innerText = `Welcome, ${data.username}`;
+        }
+
+        updateStats(data.stats);
+        renderTickets(data.tickets);
+    }
+
+
+    function updateStats(stats){
+
+        document.getElementById("openCount").innerText = stats.open;
+        document.getElementById("progressCount").innerText = stats.progress;
+        document.getElementById("closedCount").innerText = stats.closed;
+        document.getElementById("totalCount").innerText = stats.total;
+    }
+
+
+    function renderTickets(tickets){
+
+        const table = document.getElementById("ticketTable");
+        table.innerHTML="";
+
+        tickets.forEach(t=>{
+
+            const row = document.createElement("tr");
+            row.id = `ticket-${t[0]}`;
+
+            row.innerHTML = `
+                <td>${t[0]}</td>
+                <td>${t[1]}</td>
+                <td>${t[2]}</td>
+                <td>${t[3]}</td>
+                <td>${t[4]}</td>
+                <td>${t[5]}</td>
+                <td>
+                    <button class="resolve-btn"
+                    onclick="resolveTicket(${t[0]})">
+                    Resolve
+                    </button>
+                </td>
+            `;
+
+            table.appendChild(row);
+        });
+    }
+
+
+    async function resolveTicket(ticketId){
+
+        await fetch(`/users/ticket/${ticketId}/resolve`,{
+            method:"PUT"
+        });
+
+        /* remove instantly from UI */
+        const row = document.getElementById(`ticket-${ticketId}`);
+        if(row) row.remove();
+
+        loadDashboard();
+    }
+
+
+    function logout(){
+        window.location.href="/logout";
+    }
+
+
+    loadDashboard();
+
+    /* polling every 4 seconds */
+    setInterval(loadDashboard,4000);
+
+</script>
+
+</body>
+</html>

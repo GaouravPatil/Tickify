@@ -1,31 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>
-    (function () {
-
-        fetch("/auth/session")
-            .then(res => {
-                if (!res.ok) {
-                    window.location.href = "/login.html";
-                    throw new Error("No session");
-                }
-                return res.text();
-            })
-            .then(role => {
-
-                // Optional role-based page protection
-                if (window.location.pathname.includes("agent-dashboard") && role !== "AGENT") {
-                    window.location.href = "/create-ticket.html";
-                }
-
-            })
-            .catch(() => {
-                window.location.href = "/login.html";
-            });
-
-    })();
-  </script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -498,16 +473,22 @@ loginForm.addEventListener('submit', function(e) {
     .then(res => res.text())
     .then(role => {
 
-        if(role === "AGENT"){
-            window.location.href = "/agent-dashboard.html";
-        } else if(role === "USER"){
-            window.location.href = "/create-ticket.html";
-        } else {
-            alert("Invalid login credentials");
-            submitBtn.innerHTML = "Login";
-            submitBtn.disabled = false;
-        }
-    })
+    if(role === "ADMIN"){
+        window.location.href = "/admin.html";
+    }
+    else if(role === "AGENT"){
+        window.location.href = "/agent-dashboard.html";
+    }
+    else if(role === "USER"){
+        window.location.href = "/user-dashboard.html";
+    }
+    else{
+        alert("Invalid login credentials");
+        submitBtn.innerHTML = "Login";
+        submitBtn.disabled = false;
+    }
+})
+
     .catch(err => {
         console.error(err);
         alert("Login failed");

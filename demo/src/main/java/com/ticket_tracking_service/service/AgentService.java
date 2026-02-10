@@ -33,7 +33,6 @@ public class AgentService {
 
 
 
-            // CLOSED = 3
             ticketService.updateTicketStatus(ticketId,3,adminId);
         }
     }

@@ -115,16 +115,38 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Object[]> fetchAllTicketsForAdmin();
 
     @Query(value = """
-SELECT ticket_id
-FROM ticket
-WHERE current_status = 2
-AND created_at < NOW() - INTERVAL '5 minutes'
-""", nativeQuery = true)
-    List<Object[]> findTicketsReadyForAutoResolve();
+        SELECT ticket_id
+        FROM ticket
+        WHERE current_status = 2
+        AND created_at < NOW() - INTERVAL '5 minutes'
+        """, nativeQuery = true)
+            List<Object[]> findTicketsReadyForAutoResolve();
 
 
     @Query(value = "SELECT status_id FROM ticket_status WHERE status_name='CLOSED'", nativeQuery = true)
     Long findClosedStatusId();
+
+    @Query(value = """
+        SELECT 
+        COUNT(*) FILTER (WHERE current_status = 1),
+        COUNT(*) FILTER (WHERE current_status = 2),
+        COUNT(*) FILTER (WHERE current_status = 3)
+        FROM ticket
+        WHERE user_id = :userId
+        """, nativeQuery = true)
+            Object[] getUserTicketStats(long userId);
+
+        @Query(value = """
+        SELECT
+           COUNT(*) FILTER (WHERE current_status = 1),
+           COUNT(*) FILTER (WHERE current_status = 3)
+        FROM ticket
+        WHERE user_id = :userId
+        """, nativeQuery = true)
+            Object getUserStats(@Param("userId") long userId);
+
+
+
 
 
 

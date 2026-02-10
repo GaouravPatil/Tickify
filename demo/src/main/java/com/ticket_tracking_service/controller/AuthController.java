@@ -36,25 +36,20 @@ public class AuthController {
             var user = authService.authenticate(email, password);
 
             if (user == null) {
-                return ResponseEntity.status(401).body("Invalid login credentials");
+                return ResponseEntity.status(401).body("INVALID");
             }
 
-            // session handling
             session.setAttribute("userId", user.getUserId());
             session.setAttribute("username", user.getUsername());
             session.setAttribute("role", user.getRole());
 
-            if ("AGENT".equalsIgnoreCase(user.getRole())) {
-                return ResponseEntity.ok("AGENT");
-            } else {
-                return ResponseEntity.ok("USER");
-            }
+            return ResponseEntity.ok(user.getRole());
 
         } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body("Login error");
+            return ResponseEntity.internalServerError().body("ERROR");
         }
     }
+
     @PostMapping("/logout") public ResponseEntity<?> logout(HttpSession session)
     {
         if(session != null)

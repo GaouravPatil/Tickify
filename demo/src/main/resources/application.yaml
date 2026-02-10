@@ -1,11 +1,19 @@
 spring:
   application:
     name: demo
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
 
   datasource:
     url: jdbc:postgresql://localhost:5432/Transaction
-    username: user_name
-    password: password
+    username: postgres
+    password: redhat@2004
 
   jpa:
     hibernate:
@@ -20,6 +28,6 @@ server:
 
 telegram:
   bot:
-    token: {$TelegramToken}
+    token: 8516339362:AAGqawmBgzHcEWfYOmmLgbu5xlCHsJt6D1g
   chat:
-    id: "{ChatID}"
+    id: 5745827016
