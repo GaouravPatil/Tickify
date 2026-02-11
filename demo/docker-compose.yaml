@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: Transaction
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: redhat@2004
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  app:
+    build: .
+    ports:
+      - "8087:8087"
+    depends_on:
+      - postgres
+      - redis
