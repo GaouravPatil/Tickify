@@ -1,8 +1,9 @@
 package com.ticket_tracking_service.service;
 
 import com.ticket_tracking_service.Repository.TicketRepository;
-import jakarta.transaction.Transactional;
+import com.ticket_tracking_service.service.TicketService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,13 +28,10 @@ public class AgentService {
         for(Object[] t : candidates){
 
             long ticketId = ((Number)t[0]).longValue();
-            long adminId  = 1; // system admin / AI agent id
 
             System.out.println("AI AGENT → Auto resolving ticket: " + ticketId);
 
-
-
-            ticketService.updateTicketStatus(ticketId,3,adminId);
+            ticketService.resolveByAI(ticketId);
         }
     }
 }

@@ -29,7 +29,7 @@ public class UserService {
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user.setPassword(hashedPassword);   // ⚠️ use passwordHash column
+        user.setPassword(hashedPassword);   
         user.setRole(role);                     // ADMIN / AGENT / USER
         user.isActive(true);
 

@@ -35,7 +35,7 @@ public class TicketService {
 
 
 
-    /* ================= USER METHODS ================= */
+    //USER METHODS
 
     public List<Object[]> getUserTickets(long userId) {
         return ticketRepository.fetchUserTickets(userId);
@@ -58,7 +58,7 @@ public class TicketService {
         return result;
     }
 
-    /* ================= CREATE TICKET ================= */
+   // CREATE TICKET
 
     @Transactional
     public long createTicket(long userId,
@@ -96,7 +96,7 @@ public class TicketService {
         return savedTicket.getTicketId();
     }
 
-    /* ================= ADMIN DASHBOARD ================= */
+    //ADMIN DASHBOARD
     @Cacheable("adminStats")
     public Map<String, Long> getAdminStats() {
     
@@ -126,12 +126,15 @@ public class TicketService {
         return ticketRepository.categoryDistribution();
     }
 
-    /* ================= ADMIN ACTIONS ================= */
-    @CacheEvict(value={"userStats","adminStats","adminTickets"}, allEntries=true)
+    // ADMIN ACTIONS
+    @CacheEvict(
+            value = {"admin-dashboard","user-dashboard","userStats"},
+            allEntries = true
+    )
     @Transactional
     public void updateTicketStatus(long ticketId,
                                    long statusId,
-                                   long updatedBy) {
+                                   long updatedBy){
 
         ticketRepository.updateTicketStatus(ticketId, statusId);
 
@@ -143,6 +146,8 @@ public class TicketService {
 
         historyRepository.save(history);
     }
+
+
 
 
     @Transactional
