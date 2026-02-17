@@ -1,4 +1,4 @@
-name: Ticket and Service Tracker Application
+name: Tickify Deployment
 
 on:
   push:
@@ -9,17 +9,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-  steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: root
-        key: ${{ secrets.SSH_SECRETS }}
-        script: |
-          cd Tickify/demo
-          git pull
-          docker compose up -d --build
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/Tickify/demo
+            git pull origin main
+            docker compose up -d --build
