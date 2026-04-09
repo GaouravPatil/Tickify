@@ -8,4 +8,4 @@ A key feature of the system is its AI-assisted automation. The built-in AI agent
 
 The architecture emphasizes modular service layers, RESTful APIs, and transactional consistency using Spring Data JPA. By combining automated intelligence, notification integration, and a clean admin workflow, the system improves response time, reduces manual workload, and provides actionable insights through dashboard statistics and category-based analytics.
 
-Overall, this application demonstrates a modern enterprise-style helpdesk solution integrating backend automation, real-time messaging, and structured ticket lifecycle management.
+Overall, this application demonstrates a modern enterprise-style helpdesk solution integrating backend automation, real-time messaging, and structured ticket lifecycle management...
